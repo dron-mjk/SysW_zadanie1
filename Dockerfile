@@ -1,20 +1,30 @@
-FROM alpine
+FROM scratch as stage1
+ADD alpine-minirootfs-3.20.3-x86_64.tar.gz /
 
-RUN mkdir /var/flaskserver
+WORKDIR /var
 
-WORKDIR /var/flaskserver
+RUN apk add git python3 py3-pip
 
-COPY main.py .
-COPY requirements.txt .
+RUN git clone https://github.com/dron-mjk/zadanie1
 
-RUN apk add python3 py3-pip
+WORKDIR /var/zadanie1/app
 
 RUN python -m venv .venv
 
-RUN /var/flaskserver/.venv/bin/pip install -r requirements.txt
+RUN /var/zadanie1/app/.venv/bin/pip install -r requirements.txt
 
-EXPOSE 80
 
-CMD ["/var/flaskserver/.venv/bin/python", "main.py"]
+FROM scratch
+ADD alpine-minirootfs-3.20.3-x86_64.tar.gz /
+
+COPY --from=stage1 /var/zadanie1 /var/zadanie1
+
+RUN apk add python3 curl
+
+EXPOSE 5000
+
+HEALTHCHECK --start-period=30s --interval=60s CMD curl --fail 127.0.0.1:5000 || exit 1
+
+CMD ["/var/zadanie1/app/.venv/bin/python", "/var/zadanie1/app/main.py"]
 
 
