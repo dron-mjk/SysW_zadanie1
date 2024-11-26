@@ -1,11 +1,14 @@
+# syntax=docker/dockerfile:1.3
+
 FROM scratch as stage1
 ADD alpine-minirootfs-3.20.3-x86_64.tar.gz /
 
-WORKDIR /var
+RUN apk add git python3 py3-pip openssh-client 
 
-RUN apk add git python3 py3-pip
+RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts 
 
-RUN git clone https://github.com/dron-mjk/zadanie1
+# RUN --mount=type=ssh,id=git_ssh git clone https://github.com/dron-mjk/zadanie1 /var/zadanie1
+RUN --mount=type=ssh,id=git_ssh git clone git@github.com:dron-mjk/SysW_zadanie1 /var/zadanie1
 
 WORKDIR /var/zadanie1/app
 
@@ -16,6 +19,8 @@ RUN /var/zadanie1/app/.venv/bin/pip install -r requirements.txt
 
 FROM scratch
 ADD alpine-minirootfs-3.20.3-x86_64.tar.gz /
+
+LABEL org.opencontainers.image.authors="Maciej Kamiński"
 
 COPY --from=stage1 /var/zadanie1 /var/zadanie1
 
