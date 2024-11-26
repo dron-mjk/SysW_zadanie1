@@ -1,9 +1,8 @@
 # syntax=docker/dockerfile:1.3
 
-FROM scratch as stage1
-ADD alpine-minirootfs-3.20.3-x86_64.tar.gz /
+FROM alpine as stage1
 
-RUN --no-cache apk add git python3 py3-pip openssh-client 
+RUN apk add git python3 py3-pip openssh-client 
 
 RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts 
 
@@ -16,8 +15,7 @@ RUN python -m venv .venv
 RUN /var/zadanie1/app/.venv/bin/pip install -r requirements.txt
 
 
-FROM scratch
-ADD alpine-minirootfs-3.20.3-x86_64.tar.gz /
+FROM alpine
 
 LABEL org.opencontainers.image.authors="Maciej Kamiński"
 
